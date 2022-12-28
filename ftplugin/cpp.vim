@@ -31,9 +31,9 @@ endfunction
 function! s:reload()
   setl noro
   setl ma
-  echo "Loading..."
-  exec "%d"
-  exec "0r! cppman --force-columns " . (winwidth(0) - 2) . " '" . g:page_name . "'"
+  echom "Loading cpp manual for " .. g:page_name
+  silent exec "%d"
+  silent exec "0r! cppman --force-columns " . (winwidth(0) - 2) . " '" . g:page_name . "'"
   setl ro
   setl noma
   setl nomod
@@ -51,7 +51,7 @@ endfunction
 function! LoadNewPage()
   " Save current page to stack
   call add(g:stack, [g:page_name, getpos(".")])
-  let g:page_name = expand("<cword>")
+  let g:page_name = expand("<cWORD>")
   setl noro
   setl ma
   call s:reload()
@@ -82,7 +82,7 @@ function! s:Cppman(page)
 
   syntax on
   syntax case ignore
-  syntax match  manReference       "[a-z_:+-\*][a-z_:+-~!\*<>]\+([1-9][a-z]\=)"
+  syntax match  manReference       "[a-z_:+-\*][a-z_:+-~!\*<>()]\+ ([1-9][a-z]\=)"
   syntax match  manTitle           "^\w.\+([0-9]\+[a-z]\=).*"
   syntax match  manSectionHeading  "^[a-z][a-z_ \-:]*[a-z]$"
   syntax match  manSubHeading      "^\s\{3\}[a-z][a-z ]*[a-z]$"
@@ -127,15 +127,20 @@ function! s:Cppman(page)
   noremap <buffer> K :call LoadNewPage()<CR>
   map <buffer> <CR> K
   map <buffer> <C-]> K
+  map <buffer> \] K
   map <buffer> <2-LeftMouse> K
 
-  noremap <buffer> <C-o> :call BackToPrevPage()<CR>
-  map <buffer> <RightMouse> <C-o>
+  " map <buffer> <RightMouse> <C-o>
+  noremap <buffer> <C-T> :call BackToPrevPage()<CR>
+  map <buffer> <C-o> <C-T>
+  map <buffer> \<BS> <C-T>
+  map <buffer> \\<BS> <C-T>
+  map <buffer> <RightMouse> <C-T>
 
   let b:current_syntax = "man"
 
   let s:old_col = 0 
-  autocmd VimResized * call s:Rerender()
+  autocmd VimResized <buffer> call s:Rerender()
 
   " Open page
   call s:reload()
@@ -144,4 +149,3 @@ endfunction
 
 command! -nargs=+ Cppman call s:Cppman(expand(<q-args>)) 
 setl keywordprg=:Cppman                                                      
-
